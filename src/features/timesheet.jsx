@@ -45,14 +45,19 @@ export default function Timesheet() {
 
   console.log("Render: ", employees);
 
-  const handleTimeSheetSubmit = (emp, timesheet) => {
-    console.log("TIMESHEET: EMP: ");
-    console.log(timesheet);
+  const handleTimeSheetSubmit = (emp, newTimesheet) => {
+    console.log("TIMESHEET: EMP: ", emp);
+    console.log("NEW TIMESHEET:", newTimesheet);
 
-    setTimesheet(ps => {
-      return [...timesheet, ...ps]
-    })
-  }
+    setTimesheet(prevTimesheets => {
+        // Remove all existing timesheets for this employee
+        const filteredTimesheets = prevTimesheets.filter(ts => ts.empId !== emp.id);
+
+        // Add the new timesheets for this employee
+        return [...filteredTimesheets, ...newTimesheet];
+    });
+  };
+
 
   return (
     <div>
