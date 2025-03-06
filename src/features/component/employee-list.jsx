@@ -4,7 +4,7 @@ import EmployeeDisplay from "./employee-display"
 import EmployeeEditForm from './employee-edit-form';
 
 export default function EmployeeList({data}) {
-  const [edit, toggleEdit] = useState(false);
+  const [editEmpId, toggleEdit] = useState(null);
 
   const submit = useSubmit();
   
@@ -16,9 +16,17 @@ export default function EmployeeList({data}) {
     );
   }
 
+  const handleEdit = (empId) => {
+    if (editEmpId === empId) {
+      toggleEdit(undefined);
+    } else {
+      toggleEdit(empId);
+    }
+  }
+
   return (
     <div>
-      <table>
+      <table style= {{width: "900px"}}>
         <thead>
           <tr>
             <th>First Name</th>
@@ -31,7 +39,7 @@ export default function EmployeeList({data}) {
             data.map(emp => {
               return (
                 <tr key={emp.id}>
-                  {edit ? <EmployeeEditForm emp = {emp} /> :  <EmployeeDisplay emp = {emp} />}
+                  {editEmpId == emp.id ? <EmployeeEditForm emp = {emp} /> :  <EmployeeDisplay emp = {emp} />}
                   <td colSpan="2">
                     <button onClick={() => handleDelete(emp.id)} type='button'>
                       X
@@ -40,7 +48,7 @@ export default function EmployeeList({data}) {
                     {/* <button onClick={handleDelete.bind(null,emp.id)} type='button'>
                       X
                     </button> */}
-                    <button onClick={() => toggleEdit(ps => !ps)} type="button">Edit</button>
+                    <button onClick={() => handleEdit(emp.id)} type="button">Edit</button>
                     </td>
                 </tr>
               )

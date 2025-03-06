@@ -7,7 +7,7 @@ export default function EmployeeEditForm({emp}) {
   return (
     <td>
       <fetcher.Form method="post">
-        <td>{emp.firstname}
+        <td>
           <input type='hidden' name="empId" value={emp.id} />
           <input type='text' name="firstname" defaultValue={emp.firstname} />
         </td>
