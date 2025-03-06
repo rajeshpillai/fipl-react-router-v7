@@ -1,106 +1,135 @@
-import { useState, useEffect } from "react";
+import { useLoaderData, useFetcher, useNavigate } from "react-router";
+import { useState } from "react";
+import { employeeApi } from "../../../api/store"
 
-export default function TimeSheet({ employee, data, onClose, onSubmit }) {
+// 🔥 Loader: Fetch timesheets for the selected employee
+export async function timesheetModalLoader({ params }) {
+  const timesheets = await employeeApi.getTimesheets(params.empId);
+  return timesheets.length > 0 ? timesheets : [{ empId: params.empId, date: "", hours: "", description: "" }];
+}
 
-    console.log("Time sheet data for ", employee.id, data);
+export async function timesheetModalAction({ request, params }) {
+    const form = await request.formData();
+    const action = form.get("formAction");
+  
+    if (action === "update-timesheet") {
+      const empId = params.empId;
+      const timesheets = JSON.parse(form.get("timesheets")); // Parse JSON data
+  
+      console.log(`Updating timesheets for Employee ID: ${empId}`, timesheets);
+      await employeeApi.addTimesheet(empId, timesheets);
+  
+      return null; // Indicates success (No redirection needed)
+    }
+  
+    throw new Response("Invalid action", { status: 400 });
+  }
+  
 
-    // Initialize state with the provided `data` or default to an empty entry
-    const [timesheets, setTimesheets] = useState(() => {
-        return data && data.length > 0 ? data : [{ empId: employee.id, date: "", hours: "", description: "" }];
+export default function TimesheetModal() {
+  const initialTimesheets = useLoaderData();
+  const navigate = useNavigate();
+  const fetcher = useFetcher();
+  const [timesheets, setTimesheets] = useState(initialTimesheets);
+
+  // 🔹 Handle input changes
+  function handleChange(index, field, value) {
+    setTimesheets(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
     });
+  }
 
-    // Handle input changes
-    function handleChange(index, field, value) {
-        setTimesheets(prevTimesheets => {
-            const newTimesheets = [...prevTimesheets];
-            newTimesheets[index] = {
-                ...newTimesheets[index],
-                [field]: value
-            };
-            return newTimesheets;
-        });
+  // 🔹 Add a new empty row
+  function addRow() {
+    setTimesheets(prev => [
+      ...prev,
+      { empId: initialTimesheets[0].empId, date: "", hours: "", description: "" }
+    ]);
+  }
+
+  // 🔹 Remove a row
+  function removeRow(index) {
+    setTimesheets(prev => prev.filter((_, i) => i !== index));
+  }
+
+  // 🔹 Handle form submission
+  function handleSubmit(e) {
+    e.preventDefault();
+    const validTimesheets = timesheets.filter(ts => ts.date && ts.hours);
+    if (validTimesheets.length === 0) {
+      alert("Please enter valid timesheet entries before submitting.");
+      return;
     }
+    
+    const formData = new FormData();
+    formData.append("formAction", "update-timesheet");
+    formData.append("empId", timesheets[0].empId);
+    formData.append("timesheets", JSON.stringify(validTimesheets));
 
-    // Add a new row
-    function addRow() {
-        setTimesheets(prevTimesheets => [
-            ...prevTimesheets,
-            { empId: employee.id, date: "", hours: "", description: "" }
-        ]);
-    }
+    fetcher.submit(formData, { method: "post" });
+    navigate(-1); // Close modal after submit
+  }
 
-    // Remove a row
-    function removeRow(index) {
-        setTimesheets(prevTimesheets => prevTimesheets.filter((_, i) => i !== index));
-    }
+  return (
+    <div className="modal-overlay">
+      <div className="modal">
+        <h2>Timesheets</h2>
 
-    // Handle submission, ensuring only valid rows are submitted
-    function handleSubmit() {
-        const validTimesheets = timesheets.filter(entry => entry.date && entry.hours);
+        <fetcher.Form method="post" onSubmit={handleSubmit}>
+          <table border="1" width="100%">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Hours</th>
+                <th>Description</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {timesheets.map((ts, index) => (
+                <tr key={index}>
+                  <td>
+                    <input 
+                      type="date" 
+                      value={ts.date} 
+                      onChange={(e) => handleChange(index, "date", e.target.value)} 
+                      required
+                    />
+                  </td>
+                  <td>
+                    <input 
+                      type="number" 
+                      min="0"
+                      value={ts.hours} 
+                      onChange={(e) => handleChange(index, "hours", e.target.value)} 
+                      required
+                    />
+                  </td>
+                  <td>
+                    <input 
+                      type="text" 
+                      value={ts.description} 
+                      onChange={(e) => handleChange(index, "description", e.target.value)} 
+                      required
+                    />
+                  </td>
+                  <td>
+                    {timesheets.length > 1 && (
+                      <button type="button" onClick={() => removeRow(index)}>Remove</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <button type="button" onClick={addRow}>Add Row</button>
+          <button type="submit">Save Timesheets</button>
+        </fetcher.Form>
 
-        if (validTimesheets.length === 0) {
-            alert("Please fill at least one valid timesheet entry before submitting.");
-            return;
-        }
-
-        console.log("Submitting timesheet:", JSON.stringify(validTimesheets, null, 2));
-        onSubmit(employee, validTimesheets);
-    }
-
-    return (
-        <div className="modal-overlay">
-            <div className="modal">
-                <h2>Add Timesheet for {employee.firstname} {employee.lastname}</h2>
-                <table border="1" width="100%">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Hours</th>
-                            <th>Description</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {timesheets.map((entry, index) => (
-                            <tr key={index}>
-                                <td>
-                                    <input 
-                                        type="date" 
-                                        value={entry.date} 
-                                        onChange={(e) => handleChange(index, "date", e.target.value)} 
-                                    />
-                                </td>
-                                <td>
-                                    <input 
-                                        type="number" 
-                                        min="0"
-                                        value={entry.hours} 
-                                        onChange={(e) => handleChange(index, "hours", e.target.value)} 
-                                    />
-                                </td>
-                                <td>
-                                    <input 
-                                        type="text" 
-                                        value={entry.description} 
-                                        onChange={(e) => handleChange(index, "description", e.target.value)} 
-                                    />
-                                </td>
-                                <td>
-                                    {timesheets.length > 1 && (
-                                        <button onClick={() => removeRow(index)}>Remove</button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                <button onClick={addRow}>Add Row</button>
-                <button onClick={handleSubmit}>Add Timesheet</button>
-                <button onClick={onClose}>Close</button>
-
-                {/* Debugging Output */}
-                {console.log("Current State:", timesheets)}
-            </div>
-        </div>
-    );
+        <button onClick={() => navigate(-1)}>Close</button>
+      </div>
+    </div>
+  );
 }

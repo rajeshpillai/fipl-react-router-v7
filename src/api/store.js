@@ -3,6 +3,8 @@ let employees = [
   { id: "2", firstname: "Jane", lastname: "Smith", temp: true },
 ];
 
+let timesheets = []; // 🔥 NEW: Store timesheets separately
+
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const employeeApi = {
@@ -41,6 +43,35 @@ export const employeeApi = {
   async deleteEmployee(id) {
     await delay(300);
     employees = employees.filter((emp) => emp.id !== id);
+    timesheets = timesheets.filter((ts) => ts.empId !== id); // 🔥 Remove timesheets for deleted employee
     return true;
   },
+
+  // 🔥 NEW API: Add timesheet for an employee
+  async addTimesheet(empId, newTimesheet) {
+    await delay(300);
+    // Remove old timesheets for this employee and replace with new ones
+    timesheets = timesheets.filter((ts) => ts.empId !== empId);
+    timesheets.push(...newTimesheet);
+    return newTimesheet;
+  },
+
+  // 🔥 NEW API: Fetch timesheets for a specific employee
+  async getTimesheets(empId) {
+    await delay(300);
+    return timesheets.filter((ts) => ts.empId === empId);
+  },
+
+  // 🔥 NEW API: Fetch all timesheets
+  async fetchAllTimesheets() {
+    await delay(300);
+    return timesheets;
+  },
+
+  // 🔥 NEW API: Delete timesheets for an employee
+  async deleteTimesheets(empId) {
+    await delay(300);
+    timesheets = timesheets.filter((ts) => ts.empId !== empId);
+    return true;
+  }
 };

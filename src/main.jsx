@@ -9,6 +9,7 @@ import Employee, { employeeAction, employeeLoader } from './features/employee.js
 import Timesheet, { timesheetAction, timesheetLoader } from './features/timesheet.jsx'
 
 import Attendance from './features/attendance.jsx'
+import TimesheetModal, {timesheetModalAction, timesheetModalLoader} from './features/component/timesheets/timesheet-entry.jsx'
 
 
 const router = createBrowserRouter([
@@ -22,10 +23,18 @@ const router = createBrowserRouter([
       loader: employeeLoader
     },
     {
-      path: "timesheets",
+      path: "/timesheets",
       element: <Timesheet />,
+      loader: timesheetLoader,
       action: timesheetAction,
-      loader: timesheetLoader
+      children: [
+        {
+          path: ":empId",
+          element: <TimesheetModal/>,
+          loader: timesheetModalLoader,
+          action: timesheetModalAction
+        }
+      ]
     },
     {
       path: "attendance",

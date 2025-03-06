@@ -1,89 +1,71 @@
-import React, {useState} from 'react'
-import {Form, useLoaderData} from 'react-router'
-import { employeeApi } from  "../api/store";
-import EmployeeList from './component/timesheets/employee-list';
+import React from 'react';
+import { Form, Outlet, useLoaderData, useNavigate } from 'react-router';
+import { employeeApi } from "../api/store"
+import EmployeeList from '../features/component/timesheets/employee-list'
+import "./timesheet.css"
 
-import "./timesheet.css";
-
-
+// 🔥 Loader: Fetch only employees (No timesheets yet)
 export async function timesheetLoader() {
-  console.log("Employee Loader....");
-  const data = await employeeApi.fetchEmployees();
-  console.log(data);
-  return data;
+  console.log("Fetching Employees...");
+  const employees = await employeeApi.fetchEmployees();
+  return { employees };
 }
 
-export async function timesheetAction({request}) {
-  
+// 🔥 Action: Handles adding/updating/deleting employees
+export async function timesheetAction({ request }) {
   const form = await request.formData();
-  console.log("Form submit: ", form);
-  const firstname = form.get("firstname");
-  const lastname = form.get("lastname");
-  const temp = form.get("temp");
-
   const action = form.get("formAction");
   const empId = form.get("empId");
 
-  console.log("Submitting form data: ", {firstname: firstname, lastname: lastname, temp, action, empId});
-
   if (action === "new-employee") {
-    await employeeApi.addEmployee(firstname, lastname, temp);
+    await employeeApi.addEmployee(form.get("firstname"), form.get("lastname"), form.get("temp"));
   }
   if (action === "delete-employee") {
     await employeeApi.deleteEmployee(empId);
   }
   if (action === "edit-employee") {
-    await employeeApi.updateEmployee(empId, {empId, firstname: firstname, lastname: lastname, temp});
+    await employeeApi.updateEmployee(empId, {
+      firstname: form.get("firstname"),
+      lastname: form.get("lastname"),
+      temp: form.get("temp"),
+    });
   }
+
+  return null; // Redirect after action completes
 }
 
 export default function Timesheet() {
-  const employees = useLoaderData();
-
-  // /empId: [{ date: "", hours: "", description: "" }]  // format
-  const [timesheet, setTimesheet]  = useState([]);
-
-  console.log("Render: ", employees);
-
-  const handleTimeSheetSubmit = (emp, newTimesheet) => {
-    console.log("TIMESHEET: EMP: ", emp);
-    console.log("NEW TIMESHEET:", newTimesheet);
-
-    setTimesheet(prevTimesheets => {
-        // Remove all existing timesheets for this employee
-        const filteredTimesheets = prevTimesheets.filter(ts => ts.empId !== emp.id);
-
-        // Add the new timesheets for this employee
-        return [...filteredTimesheets, ...newTimesheet];
-    });
-  };
-
+  const { employees } = useLoaderData();
+  const navigate = useNavigate();
 
   return (
     <div>
       <h2>Timesheet</h2>
+      
+      {/* Form for adding a new employee */}
       <Form method="post">
         <div>
           <label>First Name</label>
-          <input type="text" name="firstname" placeholder='Enter first name...' />
+          <input type="text" name="firstname" placeholder="Enter first name..." />
         </div>
         <div>
           <label>Last Name</label>
-          <input type="text" name="lastname" placeholder='Enter last name...' />
+          <input type="text" name="lastname" placeholder="Enter last name..." />
         </div>
-        
         <div>
           <label>Temporary</label>
-          <input type="checkbox" name="temp"  />
+          <input type="checkbox" name="temp" />
         </div>
-        
         <div>
           <button type="submit" name="formAction" value="new-employee">Submit</button>
         </div>
       </Form>
 
       <h2>All Employees</h2>
-      <EmployeeList data = {employees} timesheet={timesheet} onTimeSheetSubmit = {handleTimeSheetSubmit}/>
+      <EmployeeList employees={employees} />
+
+      {/* This is where the modal opens dynamically */}
+      <Outlet />
     </div>
-  )
+  );
 }
