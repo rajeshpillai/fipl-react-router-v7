@@ -1,16 +1,18 @@
 import React from 'react'
 import {Form, useLoaderData} from 'react-router'
 import { employeeApi } from  "../api/store";
-import EmployeeList from './component/employees/employee-list';
+import EmployeeList from './component/timesheets/employee-list';
 
-export async function employeeLoader() {
+import "./timesheet.css";
+
+export async function timesheetLoader() {
   console.log("Employee Loader....");
   const data = await employeeApi.fetchEmployees();
   console.log(data);
   return data;
 }
 
-export async function employeeAction({request}) {
+export async function timesheetAction({request}) {
   
   const form = await request.formData();
   console.log("Form submit: ", form);
@@ -34,12 +36,12 @@ export async function employeeAction({request}) {
   }
 }
 
-export default function Employee() {
+export default function Timesheet() {
   const employees = useLoaderData();
   console.log("Render: ", employees);
   return (
     <div>
-      <h2>Employee Register</h2>
+      <h2>Timesheet</h2>
       <Form method="post">
         <div>
           <label>First Name</label>

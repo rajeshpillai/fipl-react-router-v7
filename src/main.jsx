@@ -6,6 +6,8 @@ import './index.css'
 import App from './app.jsx'
 import About from './about.jsx'
 import Employee, { employeeAction, employeeLoader } from './features/employee.jsx'
+import Timesheet, { timesheetAction, timesheetLoader } from './features/timesheet.jsx'
+
 import Attendance from './features/attendance.jsx'
 
 
@@ -18,6 +20,12 @@ const router = createBrowserRouter([
       element: <Employee />,
       action: employeeAction,
       loader: employeeLoader
+    },
+    {
+      path: "timesheets",
+      element: <Timesheet />,
+      action: timesheetAction,
+      loader: timesheetLoader
     },
     {
       path: "attendance",
