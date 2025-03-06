@@ -62,11 +62,6 @@ export default function Timesheet() {
   return (
     <div>
       <h2>Timesheet</h2>
-      <pre>
-        {
-          JSON.stringify(timesheet)
-        }
-      </pre>
       <Form method="post">
         <div>
           <label>First Name</label>
