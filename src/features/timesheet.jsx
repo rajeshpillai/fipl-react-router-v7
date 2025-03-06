@@ -1,9 +1,10 @@
-import React from 'react'
+import React, {useState} from 'react'
 import {Form, useLoaderData} from 'react-router'
 import { employeeApi } from  "../api/store";
 import EmployeeList from './component/timesheets/employee-list';
 
 import "./timesheet.css";
+
 
 export async function timesheetLoader() {
   console.log("Employee Loader....");
@@ -38,10 +39,29 @@ export async function timesheetAction({request}) {
 
 export default function Timesheet() {
   const employees = useLoaderData();
+
+  // /empId: [{ date: "", hours: "", description: "" }]  // format
+  const [timesheet, setTimesheet]  = useState([]);
+
   console.log("Render: ", employees);
+
+  const handleTimeSheetSubmit = (emp, timesheet) => {
+    console.log("TIMESHEET: EMP: ");
+    console.log(timesheet);
+
+    setTimesheet(ps => {
+      return [...timesheet, ...ps]
+    })
+  }
+
   return (
     <div>
       <h2>Timesheet</h2>
+      <pre>
+        {
+          JSON.stringify(timesheet)
+        }
+      </pre>
       <Form method="post">
         <div>
           <label>First Name</label>
@@ -63,7 +83,7 @@ export default function Timesheet() {
       </Form>
 
       <h2>All Employees</h2>
-      <EmployeeList data = {employees}/>
+      <EmployeeList data = {employees} timesheet={timesheet} onTimeSheetSubmit = {handleTimeSheetSubmit}/>
     </div>
   )
 }

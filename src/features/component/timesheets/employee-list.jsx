@@ -4,22 +4,35 @@ import EmployeeDisplay from "./employee-display"
 import EmployeeEditForm from './employee-edit-form';
 import TimeSheet from './timesheet-entry';
 
-export default function EmployeeList({data}) {
+export default function EmployeeList({data, timesheet=[], onTimeSheetSubmit}) {
+  const submit = useSubmit();
   const [editEmpId, toggleEdit] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedTimesheet, setSelectedTimesheet] = useState();
 
-  const submit = useSubmit();
+  console.log("DEBUG>>>> ", timesheet);
+
+  for(const t of timesheet) {
+    console.log(t);
+  }
+
 
   function handleAddTimesheet(employee) {
     setSelectedEmployee(employee);
     setShowModal(true);
+    let myTimeSheet = timesheet.filter(t => t.empId == employee.id );
+    setSelectedTimesheet(myTimeSheet);
+    console.log("FUll timesheet: ", timesheet);
+    console.log(`Selected timesheet for emp ${employee.id}: `, myTimeSheet);
+
   }
 
-  function handleTimesheetSubmit(timesheetData) {
+  function handleTimesheetSubmit(emp, timesheetData) {
     console.log("Timesheet for:", selectedEmployee);
     console.log("Submitted Data:", timesheetData);
     setShowModal(false);
+    onTimeSheetSubmit(emp, timesheetData);
   }
   
   const handleDelete = (empId) => {
@@ -35,6 +48,7 @@ export default function EmployeeList({data}) {
       toggleEdit(undefined);
     } else {
       toggleEdit(empId);
+     
     }
   }
 
@@ -73,6 +87,7 @@ export default function EmployeeList({data}) {
       </table>
       {showModal && (
         <TimeSheet 
+          data={selectedTimesheet}
           employee={selectedEmployee} 
           onClose={() => setShowModal(false)}
           onSubmit={handleTimesheetSubmit}
