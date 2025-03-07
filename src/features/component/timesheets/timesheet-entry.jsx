@@ -1,6 +1,7 @@
 import { useLoaderData, useFetcher, useNavigate } from "react-router";
 import { useState } from "react";
 import { employeeApi } from "../../../api/store"
+import TimesheetForm from "./timesheet-form";
 
 // 🔥 Loader: Fetch timesheets for the selected employee
 export async function timesheetModalLoader({ params }) {
@@ -77,56 +78,7 @@ export default function TimesheetModal() {
       <div className="modal">
         <h2>Timesheets</h2>
 
-        <fetcher.Form method="post" onSubmit={handleSubmit}>
-          <table border="1" width="100%">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Hours</th>
-                <th>Description</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {timesheets.map((ts, index) => (
-                <tr key={index}>
-                  <td>
-                    <input 
-                      type="date" 
-                      value={ts.date} 
-                      onChange={(e) => handleChange(index, "date", e.target.value)} 
-                      required
-                    />
-                  </td>
-                  <td>
-                    <input 
-                      type="number" 
-                      min="0"
-                      value={ts.hours} 
-                      onChange={(e) => handleChange(index, "hours", e.target.value)} 
-                      required
-                    />
-                  </td>
-                  <td>
-                    <input 
-                      type="text" 
-                      value={ts.description} 
-                      onChange={(e) => handleChange(index, "description", e.target.value)} 
-                      required
-                    />
-                  </td>
-                  <td>
-                    {timesheets.length > 1 && (
-                      <button type="button" onClick={() => removeRow(index)}>Remove</button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <button type="button" onClick={addRow}>Add Row</button>
-          <button type="submit">Save Timesheets</button>
-        </fetcher.Form>
+        <TimesheetForm timesheets={timesheets} navigate={navigate} fetcher={fetcher} />
 
         <button onClick={() => navigate(-1)}>Close</button>
       </div>
